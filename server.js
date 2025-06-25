@@ -9,6 +9,8 @@ const postsRoutes = require('./routes/posts');
 const commentRoutes = require('./routes/comments');
 const { scheduleCleanup } = require('./tasks/cleanupPosts');
 dotenv.config();
+console.log("Connecting to MongoDB URI:", process.env.MONGODB_URI);
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -32,9 +34,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
-    scheduleCleanup(io);
+    scheduleCleanup();
   })
   .catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
     process.exit(1);
   });
 app.use('/api/auth', authRoutes);
@@ -82,4 +85,6 @@ app.use((err, req, res, next) => {
   });
 });
 const PORT = process.env.PORT || 5000;
-httpServer.listen(PORT, () => {});
+httpServer.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
