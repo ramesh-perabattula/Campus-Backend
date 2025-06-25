@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const User = require('./User');
 
 const commentSchema = new mongoose.Schema({
   post: {
@@ -26,31 +27,17 @@ const commentSchema = new mongoose.Schema({
 
 // Pre-save middleware to ensure author exists
 commentSchema.pre('save', async function(next) {
-  if (this.isNew) {
-    try {
-      const User = mongoose.model('User');
-      const author = await User.findById(this.author);
-      if (!author) {
-        throw new Error('Author not found');
-      }
-    } catch (error) {
-      next(error);
-    }
+  const user = await User.findById(this.author);
+  if (!user) {
+    return next(new Error('Author does not exist'));
   }
   next();
 });
 
 // Pre-find middleware to always populate author
-commentSchema.pre('find', function() {
-  if (!this._mongooseOptions.populate) {
-    this.populate('author', 'name email');
-  }
-});
-
-commentSchema.pre('findOne', function() {
-  if (!this._mongooseOptions.populate) {
-    this.populate('author', 'name email');
-  }
+commentSchema.pre(/^find/, function(next) {
+  this.populate('author', 'name email');
+  next();
 });
 
 const Comment = mongoose.model('Comment', commentSchema);
