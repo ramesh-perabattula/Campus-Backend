@@ -66,7 +66,7 @@ exports.signup = async (req, res) => {
     await user.save();
     const token = jwt.sign(
       { 
-        userId: user._id,
+        _id: user._id,
         email: user.email,
         name: user.name,
         studentId: user.studentId
@@ -121,7 +121,7 @@ exports.login = async (req, res) => {
     }
     const token = jwt.sign(
       { 
-        userId: user._id,
+        _id: user._id,
         email: user.email,
         name: user.name,
         studentId: user.studentId
@@ -140,6 +140,23 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Error during login' });
+  }
+};
+
+exports.getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      studentId: user.studentId
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error getting current user' });
   }
 };
 

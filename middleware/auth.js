@@ -9,10 +9,10 @@ module.exports = async (req, res, next) => {
       return res.status(401).json({ message: 'No token provided' });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded.userId) {
+    if (!decoded._id) {
       return res.status(401).json({ message: 'Invalid token' });
     }
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded._id);
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
